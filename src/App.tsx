@@ -1,34 +1,59 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [itemsInCart, setItemsInCart] = useState<number>(0);
+  const [peopleList, setPeopleList] = useState([
+    [10, 5, 6],
+    [1],
+    [2],
+    [3],
+    [4],
+  ]);
+
+  console.log(peopleList);
+
+  function addItemsToList(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    let listWithLowestItems: number[];
+    let lowestListItemCount: number = 1e9;
+
+    for (let person of peopleList) {
+      const totalPersons = person.reduce((sum, value) => sum + value);
+
+      if (totalPersons < lowestListItemCount) {
+        lowestListItemCount = totalPersons;
+        listWithLowestItems = person;
+      }
+    }
+
+    setPeopleList((prevPeopleList) =>
+      prevPeopleList.map((person) =>
+        person === listWithLowestItems
+          ? (person = [...person, itemsInCart])
+          : person
+      )
+    );
+  }
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main className="App">
+      <form onSubmit={addItemsToList}>
+        <input
+          type="number"
+          value={itemsInCart}
+          onChange={(e) => setItemsInCart(e.currentTarget.valueAsNumber)}
+        />
+        <button>Checkout</button>
+      </form>
+      <div className="lists">
+        {peopleList.map((person, i) => (
+          <div key={i}>X</div>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+    </main>
+  );
 }
 
-export default App
+export default App;
