@@ -1,26 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-  const [itemsInCart, setItemsInCart] = useState<number>(0);
-  const [peopleList, setPeopleList] = useState([
-    [10, 5, 6],
-    [1],
-    [2],
-    [3],
-    [4],
+  const [itemsInCart, setItemsInCart] = useState<number | ''>(0);
+  const [peopleList, setPeopleList] = useState<number[][]>([
+    [],
+    [],
+    [],
+    [],
+    [],
   ]);
-
-  console.log(peopleList);
 
   function addItemsToList(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    let listWithLowestItems: number[];
+    if (itemsInCart === '' || itemsInCart <= 0) return;
+
+    let listWithLowestItems: number[] | undefined = undefined;
     let lowestListItemCount: number = 1e9;
 
     for (let person of peopleList) {
-      const totalPersons = person.reduce((sum, value) => sum + value);
+      const totalPersons = person.reduce((sum, value) => sum + value, 0);
 
       if (totalPersons < lowestListItemCount) {
         lowestListItemCount = totalPersons;
@@ -28,28 +28,57 @@ function App() {
       }
     }
 
-    setPeopleList((prevPeopleList) =>
+    if (!listWithLowestItems) return;
+
+    return setPeopleList((prevPeopleList) =>
       prevPeopleList.map((person) =>
         person === listWithLowestItems
-          ? (person = [...person, itemsInCart])
+          ? (person = [...person, itemsInCart as number])
           : person
       )
     );
   }
 
+  useEffect(() => {
+    const interval = setInterval(
+      () =>
+        setPeopleList((prevPeopleList) =>
+          prevPeopleList.map((person) =>
+            [person[0] - 1, ...person.slice(1)].filter((value) => value > 0)
+          )
+        ),
+      1000 / 2
+    );
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
-    <main className="App">
+    <main className='App'>
       <form onSubmit={addItemsToList}>
         <input
-          type="number"
+          type='number'
           value={itemsInCart}
-          onChange={(e) => setItemsInCart(e.currentTarget.valueAsNumber)}
+          onChange={(e) => {
+            if (e.currentTarget.value === '') {
+              setItemsInCart('');
+            } else {
+              setItemsInCart(e.currentTarget.valueAsNumber);
+            }
+          }}
         />
         <button>Checkout</button>
       </form>
-      <div className="lists">
+      <div className='lists'>
         {peopleList.map((person, i) => (
-          <div key={i}>X</div>
+          <div key={i}>
+            X
+            {person.map((itemsInCart, idx) => (
+              <div key={idx}>{itemsInCart}</div>
+            ))}
+          </div>
         ))}
       </div>
     </main>
